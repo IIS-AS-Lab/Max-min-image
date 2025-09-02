@@ -12,6 +12,7 @@ git clone https://github.com/IIS-AS-Lab/Max-min-image.git
 cd Max-min-image
 conda env create -f environment.yml -n Max_Min
 conda activate Max_Min
+```
 
 ## Usage
 ```Python
