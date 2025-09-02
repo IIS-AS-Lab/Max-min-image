@@ -1,21 +1,10 @@
 import cv2
 from matplotlib import pyplot as plt
-import time
-import numpy as py
-from numpy import linalg as LA
+import numpy as np
 import sys
-"""
-from scipy.signal import find_peaks, peak_prominences
-from scipy import signal
-"""
-from scipy.signal import convolve2d
-from skimage import color, data, restoration
-
-import math
 from skimage import io
-import os.path
-
 import scipy.ndimage
+from PIL import Image, ImageEnhance
 
 Colormap=['gray','Greys','summer','winter','hot','bone','hsv']
 
@@ -130,7 +119,7 @@ if (all_sp == 1):
 images = io.imread(input_file)
 length = images.shape[0]   # total video frame number 
 for i in range(length):
-   images[i] = (images[i]).astype(py.int32)
+   images[i] = (images[i]).astype(np.int32)
 ROW, COL = images[0].shape
 
 ##################################################################################
@@ -165,62 +154,45 @@ else:
    Too_bright_list = []
 
    for i in range(length):
-      if (py.mean(images[i]) < 5):
+      if (np.mean(images[i]) < 5):
          print("The ",i,"th frame is blank!")
          blank_list.append(i)
    if (len(blank_list)==0):
       print("No blank frame\n")
    else:
-      for i in range(len(blank_list)):
-         j = blank_list[i-1]
-         if j == length-1:
-            images[j] = images[j-1]
-         else:
-            images[j] = images[j+1]
-   """
-   max_int = py.max(images)
-   for i in range(length):
-      if (py.mean(images[i]) > 0.85*max_int):
-         print("The ",i,"th frame is whole bright!")
-         Too_bright_list.append(i)
-   if (len(Too_bright_list)==0):
-      print("No too bright frame\n")
-   else:
-      for i in range(len(Too_bright_list)):
-         j = Too_bright_list[i-1]
-         if j == length-1:
-            images[j] = images[j-1]
-         else:
-            images[j] = images[j+1]
-   """
+      for idx in blank_list:
+            if idx == 0:
+                images[idx] = images[1]
+            elif idx == length - 1:
+                images[idx] = images[idx - 1]
+            else:
+                images[idx] = images[idx - 1]
+        
    print("Checking complete!")
 ####################################################################################
-x=py.swapaxes(py.reshape(images,(length,ROW,COL)),0,2)
-x= py.swapaxes(x,0,1)
+x=np.swapaxes(np.reshape(images,(length,ROW,COL)),0,2)
+x= np.swapaxes(x,0,1)
 print(x.shape)
 
-IP_max = py.zeros((ROW,COL),dtype=py.int32)
-IP_min = py.zeros((ROW,COL),dtype=py.int32)
+IP_max = np.zeros((ROW,COL),dtype=np.int32)
+IP_min = np.zeros((ROW,COL),dtype=np.int32)
 
 for i in range(ROW):
    print("*",end="",flush=True)
    for j in range(COL):
-      y = py.array(x[i][j][:])
+      y = np.array(x[i][j][:])
       if top_sp == 0 :
-         IP_max[i][j] = py.max(y)
-         IP_min[i][j] = py.min(y)
+         IP_max[i][j] = np.max(y)
+         IP_min[i][j] = np.min(y)
       else:
-         IP_max[i][j] = py.percentile(y,top_per)
-         IP_min[i][j] = py.min(y)
+         IP_max[i][j] = np.percentile(y,top_per)
+         IP_min[i][j] = np.min(y)
          if IP_min[i][j] > IP_max[i][j]:
-            IP_min[i][j] = IP_min[i][j]-(py.max(y)-IP_max[i][j])
+            IP_min[i][j] = IP_min[i][j]-(np.max(y)-IP_max[i][j])
 print("")
-"""
-IP_max = scipy.ndimage.median_filter(IP_max,size=5)
-IP_min = scipy.ndimage.median_filter(IP_min,size=5)
-"""
-all_max = py.max(IP_max)*1.1
-all_min = py.min(IP_max)*0.9
+
+all_max = np.max(IP_max)*1.1
+all_min = np.min(IP_max)*0.9
 
 plt.figure(input_file,figsize=(8,6))
 plt.title(input_file+" Max(F)")
@@ -254,8 +226,8 @@ if (all_sp == 1):
 
 IP_max = IP_max - IP_min
 
-all_max = py.max(IP_max)*1.1
-all_min = py.min(IP_max)*0.9
+all_max = np.max(IP_max)*1.1
+all_min = np.min(IP_max)*0.9
 
 plt.figure(input_file,figsize=(8,6))
 plt.title(input_file+" Max(F)-Min(F)")
@@ -281,8 +253,6 @@ dff_file = input_file + ".Max_Min.diff.enhanced.png"
 plt.axis('off')
 plt.imsave(dff_file,IP_max,vmax=all_max,vmin=all_min,cmap=plt.cm.hot)
 
-from PIL import Image
-from PIL import ImageEnhance
 img=Image.open(dff_file)    # Opening Image
 img_shr_obj=ImageEnhance.Sharpness(img)
 factor=5    # Specified Factor for Enhancing Sharpness
@@ -305,31 +275,28 @@ if write_dff_sp == 1 or all_sp == 1:
 ####################################################################################
 print("\n\nCalculating the differences between frames")
 
-df_images = py.zeros((length,ROW,COL),dtype=int)
+df_images = np.zeros((length,ROW,COL),dtype=int)
 for i in range(1,length):
-   df_images[i] = py.abs(images[i].astype('int32') - images[i-1].astype('int32'))
+   df_images[i] = np.abs(images[i].astype('int32') - images[i-1].astype('int32'))
    ## df_images[i] =images[i+1].astype('int32')- images[i].astype('int32')
 
 df_images[1] = df_images[2]
 df_images[0] = df_images[1]
  
-x=py.swapaxes(py.reshape(df_images,(length,ROW,COL)),0,2)
-x= py.swapaxes(x,0,1)
+x=np.swapaxes(np.reshape(df_images,(length,ROW,COL)),0,2)
+x= np.swapaxes(x,0,1)
 print(x.shape)
 
 for i in range(ROW):
    print("*",end="",flush=True)
    for j in range(COL):
-      y = py.array(x[i][j][:])
-      IP_max[i][j] = py.max(y)
-      IP_min[i][j] = py.min(y)
+      y = np.array(x[i][j][:])
+      IP_max[i][j] = np.max(y)
+      IP_min[i][j] = np.min(y)
 print("")
-"""
-IP_max = scipy.ndimage.median_filter(IP_max,size=5)
-IP_min = scipy.ndimage.median_filter(IP_min,size=5)
-"""
-all_max = py.max(IP_max)*1.1
-all_min = py.min(IP_max)*0.9
+
+all_max = np.max(IP_max)*1.1
+all_min = np.min(IP_max)*0.9
 
 plt.figure(input_file,figsize=(8,6))
 plt.title(input_file+" Max(|dF|)")
@@ -382,4 +349,3 @@ if write_ddfdf_sp == 1 or all_sp==1:
    plt.axis('off')
    plt.imsave(out_ddfdf_file,IP_max,vmax=all_max,vmin=all_min,cmap=plt.cm.hot)
 quit()
-
