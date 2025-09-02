@@ -14,7 +14,7 @@ conda env create -f environment.yml -n Max_Min
 conda activate Max_Min
 ```
 
-## Usage
+## 🚀 Usage
 ```Python
 python3 Max_Min_F_dF.py -all -i example.tif
 ```
@@ -34,3 +34,7 @@ python3 Max_Min_F_dF.py -all -i example.tif
 | -dfmax   | the maximum display value for max_min(dF)  | off |
 | -dfmin   | the minimum display value for max_min(dF)  | off |
 | -noblank | to turn off the blank checking procedur    | off |
+
+## 📋 License
+#
+This project is licensed under the MIT License. See the LICENSE file for details.
