@@ -4,7 +4,6 @@ A program for detecting calcium imaging by max-min intensity methods in Python. 
 <img width="792" alt="example" src="https://user-images.githubusercontent.com/119268971/204170491-6a35cbc3-7d1d-44ea-b428-5f67e40bfcd5.png">
 
 ## ⚙️ Setup
-#
 Make sure you have [conda](https://docs.conda.io/) installed.
 
 ```bash
@@ -36,5 +35,4 @@ python3 Max_Min_F_dF.py -all -i example.tif
 | -noblank | to turn off the blank checking procedur    | off |
 
 ## 📋 License
-#
 This project is licensed under the MIT License. See the LICENSE file for details.
